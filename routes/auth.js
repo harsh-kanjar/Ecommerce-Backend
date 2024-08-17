@@ -136,8 +136,7 @@ router.post('/getuser',fetchuser, async (req, res) => {
     }
 })
 
-
-//Route 3: Get logged in user details using POST: "/api/auth/forgot-password" . Login required
+//Route 5: Get logged in user details using POST: "/api/auth/forgot-password" . Login required
 router.post('/forgot-password',fetchuser, async (req,res) => {
     const {email} = req.body;
     try{

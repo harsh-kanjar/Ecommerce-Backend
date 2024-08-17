@@ -16,14 +16,12 @@ const OrdersSchema = new Schema({
         quantity: { type: Number, required: true },
         price: { type: Number, required: true }
     }],
-    shippingAdress1: { type: String, required: true },
-    shippingAdress2: { type: String },
+    line1: { type: String, required: true },
+    line2: { type: String },
     city: { type: String, required: true },
     zip: { type: String, required: true },
     country: { type: String, required: true },
     phone: { type: Number, required: true },
-    status: { type: String, default: 'Pending' },
-    totalPrice: { type: Number, required: true },
     dateOrdered: { type: Date, default: Date.now }
 });
 

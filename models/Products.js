@@ -13,13 +13,13 @@ const ProductSchema = new Schema({
   },
   description: String,
   richDescription: String,
-  image: {
+  featuredImage: {
     type: String,
     require: true,
   },
-  images: [{
-    type: String
-  }],
+  subImage1:String,
+  subImage2:String,
+  subImage3:String,
   brand: String,
   price: Number,
   category: String,
@@ -33,6 +33,9 @@ const ProductSchema = new Schema({
     type:String,
     required:true
   },
+  keywords:[{
+    type:String
+  }],
   date: {
     type: Date,
     default: Date.now

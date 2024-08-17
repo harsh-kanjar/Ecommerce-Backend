@@ -6,7 +6,6 @@ const Category = require('../models/Category');
 const fetchuser = require('../middleware/fetchuser');
 const Cart = require('../models/Cart')
 
-
 // Route 1: Get all the products using: GET /api/v1/product/getallproducts       --User Api -- no login required
 router.get('/getallproducts', async (req, res) => {
     try {
@@ -20,19 +19,34 @@ router.get('/getallproducts', async (req, res) => {
 })
 
 // Route 2: Add a new product using: POST api/v1/product/addproduct              --Admin Api --login required 
-router.post('/addproduct',fetchuser, async (req, res) => {
+router.post('/addproduct', fetchuser, async (req, res) => {
     try {
-        // Destructuring all required and optional fields
-        const { name, description, richDescription, image, images, brand, price, category, countOfStock, rating, isFeatured } = req.body;
+        console.log("Received request body:", req.body);
 
-        // Add a new product
-        const product = new Products({ name, description, richDescription, image, images, brand, price, category, countOfStock, rating, isFeatured,user: req.user.id });
+        const { name, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords } = req.body;
 
-        // Save the product to the database
+        const product = new Products({
+            name,
+            description,
+            richDescription,
+            featuredImage,
+            subImage1,
+            subImage2,
+            subImage3,
+            brand,
+            price,
+            category,
+            countOfStock,
+            rating,
+            isFeatured,
+            keywords,
+            user: req.user.id
+        });
+
         const savedProduct = await product.save();
         res.json(savedProduct);
     } catch (error) {
-        console.error(error.message);
+        console.error("Error in /addproduct route:", error.message);
         res.status(500).send('Internal server error');
     }
 });
@@ -59,10 +73,10 @@ router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
 router.post('/makeorder',fetchuser,async (req, res) => {
     try {
         // Destructuring all required and optional fields
-        const { orderItems, shippingAdress1, shippingAdress2, city, zip, country, phone, status, totalPrice } = req.body;
+        const { line1, line2, city, zip, country, phone } = req.body;
 
         // Creating a new order instance
-        const order = new Orders({orderItems,shippingAdress1,shippingAdress2,city,zip,country,phone,status,totalPrice,user: req.user.id});
+        const order = new Orders({product:req.product.id,line1,line2,city,zip,country,phone,user: req.user.id});
 
         // Save the order to the database
         const savedOrder = await order.save();
