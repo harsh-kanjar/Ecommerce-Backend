@@ -23,10 +23,10 @@ router.post('/addproduct', fetchuser, async (req, res) => {
     try {
         console.log("Received request body:", req.body);
 
-        const { name, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords } = req.body;
+        const { productName, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords } = req.body;
 
         const product = new Products({
-            name,
+            productName,
             description,
             richDescription,
             featuredImage,
@@ -203,6 +203,7 @@ router.post('/addtocart', fetchuser, async (req, res) => {
 });
 
 // Route 8: Remove an item from the cart: DELETE /api/cart/remove/:id
+// Route: Remove an item from the cart
 router.delete('/removefromcart/:id', fetchuser, async (req, res) => {
     try {
         // Find the cart item to be removed
@@ -219,6 +220,27 @@ router.delete('/removefromcart/:id', fetchuser, async (req, res) => {
         // Delete the cart item
         await Cart.findByIdAndDelete(req.params.id);
         res.json({ success: "Item has been removed from the cart", cartItem: cartItem });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+// Route: Update the quantity of an item in the cart
+router.put('/updatecartitem/:id', fetchuser, async (req, res) => {
+    try {
+        let cartItem = await Cart.findById(req.params.id);
+        if (!cartItem) {
+            return res.status(404).send('Item not found');
+        }
+
+        if (cartItem.user.toString() !== req.user.id) {
+            return res.status(401).send('Not allowed');
+        }
+
+        cartItem.quantity = req.body.quantity;
+        await cartItem.save();
+        res.json({ success: "Quantity updated successfully", cartItem: cartItem });
     } catch (error) {
         console.error(error.message);
         res.status(500).send("Internal Server Error");

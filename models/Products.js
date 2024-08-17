@@ -6,8 +6,8 @@ const ProductSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-},
-  name: {
+  },
+  productName: {
     type: String,
     require: true
   },
@@ -17,9 +17,9 @@ const ProductSchema = new Schema({
     type: String,
     require: true,
   },
-  subImage1:String,
-  subImage2:String,
-  subImage3:String,
+  subImage1: String,
+  subImage2: String,
+  subImage3: String,
   brand: String,
   price: Number,
   category: String,
@@ -29,12 +29,12 @@ const ProductSchema = new Schema({
   },
   rating: Number,
   isFeatured: Number,
-  category:{
-    type:String,
-    required:true
+  category: {
+    type: String,
+    required: true
   },
-  keywords:[{
-    type:String
+  keywords: [{
+    type: String
   }],
   date: {
     type: Date,
