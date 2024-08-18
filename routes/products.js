@@ -18,6 +18,22 @@ router.get('/getallproducts', async (req, res) => {
     }
 })
 
+
+router.get('/getproduct/:id', async (req, res) => {
+    try {
+        const product = await Products.findById(req.params.id);
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+        res.json(product);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Internal server error');
+    }
+});
+
+
+
 // Route 2: Add a new product using: POST api/v1/product/addproduct              --Admin Api --login required 
 router.post('/addproduct', fetchuser, async (req, res) => {
     try {
@@ -70,34 +86,76 @@ router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
 });
 
 // Route 3: Make a new order using: POST api/v1/product/makeorder           --User Api --login required
-router.post('/makeorder',fetchuser,async (req, res) => {
+ 
+// Route to place an order
+router.post('/makeorder', fetchuser, async (req, res) => {
     try {
-        // Destructuring all required and optional fields
-        const { line1, line2, city, zip, country, phone } = req.body;
+        const { fullName, phone, address, line2, city, state, zip, country, paymentMode, couponCode } = req.body;
 
-        // Creating a new order instance
-        const order = new Orders({product:req.product.id,line1,line2,city,zip,country,phone,user: req.user.id});
+        // Fetch cart items for the logged-in user
+        const cartItems = await Cart.find({ user: req.user.id }).populate('product');
+
+        if (cartItems.length === 0) {
+            return res.status(400).json({ message: "Your cart is empty" });
+        }
+
+        // Calculate total price
+        let totalPrice = 0;
+        const orderItems = cartItems.map(item => {
+            const itemTotalPrice = item.product.price * item.quantity;
+            totalPrice += itemTotalPrice;
+            return {
+                product: item.product._id,
+                quantity: item.quantity,
+                price: item.product.price
+            };
+        });
+
+        // Create a new order instance
+        const order = new Orders({
+            user: req.user.id,
+            orderItems,
+            fullName,
+            address,
+            line2,
+            city,
+            state,
+            zip,
+            country,
+            phone,
+            totalPrice,
+            couponCode,
+            paymentMode  // Make sure to save paymentMode
+        });
 
         // Save the order to the database
         const savedOrder = await order.save();
+
+        // Clear the cart after placing the order
+        await Cart.deleteMany({ user: req.user.id });
+
         res.json(savedOrder);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+ 
+
+
+
+// Route 4: Get all the orders using: GET /api/v1/product/getallorders       --User Api --login required
+router.get('/getallorders', fetchuser, async (req, res) => {
+    try {
+        const orderList = await Orders.find({ user: req.user.id });
+        res.send(orderList);
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Internal server error');
     }
 });
 
-// Route 4: Get all the orders using: GET /api/v1/product/getallorders       --User Api --login required
-router.get('/getallorders',fetchuser, async (req, res) => {
-    try {
-        const orderList = await Orders.find()
-        res.send(orderList)
-
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send('Internal server error');
-    }
-})
 
 // Route 8: Remove an item from the cart: DELETE  /api/v1/product/cancelorder/:id       --Admin Api --login required
 router.delete('/cancelorder/:id', fetchuser, async (req, res) => {
