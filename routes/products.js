@@ -18,7 +18,7 @@ router.get('/getallproducts', async (req, res) => {
     }
 })
 
-
+// Route 2:
 router.get('/getproduct/:id', async (req, res) => {
     try {
         const product = await Products.findById(req.params.id);
@@ -34,7 +34,7 @@ router.get('/getproduct/:id', async (req, res) => {
 
 
 
-// Route 2: Add a new product using: POST api/v1/product/addproduct              --Admin Api --login required 
+// Route 3: Add a new product using: POST api/v1/product/addproduct              --Admin Api --login required 
 router.post('/addproduct', fetchuser, async (req, res) => {
     try {
         console.log("Received request body:", req.body);
@@ -42,21 +42,7 @@ router.post('/addproduct', fetchuser, async (req, res) => {
         const { productName, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords } = req.body;
 
         const product = new Products({
-            productName,
-            description,
-            richDescription,
-            featuredImage,
-            subImage1,
-            subImage2,
-            subImage3,
-            brand,
-            price,
-            category,
-            countOfStock,
-            rating,
-            isFeatured,
-            keywords,
-            user: req.user.id
+            productName, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords, user: req.user.id
         });
 
         const savedProduct = await product.save();
@@ -84,6 +70,37 @@ router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
+
+
+
+router.put('/updatecartitem/:cartItemId', fetchuser, async (req, res) => {
+    const { cartItemId } = req.params;
+    const { size } = req.body;
+
+    try {
+        // Find the cart item by ID and update the size
+        const cartItem = await Cart.findByIdAndUpdate(
+            cartItemId,
+            { size },
+            { new: true }
+        );
+
+        if (!cartItem) {
+            return res.status(404).json({ error: "Cart item not found" });
+        }
+
+        res.json(cartItem);
+    } catch (error) {
+        console.error("Error updating cart item size:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
+
+
+
+
 
 // Route 3: Make a new order using: POST api/v1/product/makeorder           --User Api --login required
  
