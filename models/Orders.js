@@ -14,8 +14,7 @@ const OrdersSchema = new Schema({
             required: true
         },
         quantity: { type: Number, required: true },
-        size: {type: String , requied: true},
-        price: { type: Number, required: true } // Adding price to the order items
+        price: { type: Number, required: true }  
     }],
     fullName: { type: String, required: true },
     address: { type: String, required: true },
@@ -25,7 +24,7 @@ const OrdersSchema = new Schema({
     zip: { type: String, required: true },
     country: { type: String, required: true },
     phone: { type: Number, required: true },
-    status:{type: String, dedfault:"pending"},
+    status:{type: String, default:"pending"},
     paymentMode: {type:String,required: true},
     totalPrice: { type: Number, required: true }, // Storing total price of the order
     couponCode: { type: String }, // Optional field for the coupon code

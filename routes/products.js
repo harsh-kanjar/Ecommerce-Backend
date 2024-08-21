@@ -53,7 +53,7 @@ router.post('/addproduct', fetchuser, async (req, res) => {
     }
 });
 
-// Route 8: Remove an item from the cart: DELETE  /api/v1/product/deleteproduct/:id       --Admin Api --login required
+// Route 4: Remove an item from the cart: DELETE  /api/v1/product/deleteproduct/:id       --Admin Api --login required
 router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
     try {
         // Find the cart item to be removed
@@ -72,7 +72,7 @@ router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
 });
 
 
-
+// Route 5
 router.put('/updatecartitem/:cartItemId', fetchuser, async (req, res) => {
     const { cartItemId } = req.params;
     const { size } = req.body;
@@ -102,8 +102,9 @@ router.put('/updatecartitem/:cartItemId', fetchuser, async (req, res) => {
 
 
 
-// Route 3: Make a new order using: POST api/v1/product/makeorder           --User Api --login required
+// Route 6: Make a new order using: POST api/v1/product/makeorder           --User Api --login required
  
+// DECREPTED ROUTE
 // Route to place an order
 router.post('/makeorder', fetchuser, async (req, res) => {
     try {
@@ -124,6 +125,7 @@ router.post('/makeorder', fetchuser, async (req, res) => {
             return {
                 product: item.product._id,
                 quantity: item.quantity,
+                size:item.size,
                 price: item.product.price
             };
         });
@@ -162,7 +164,7 @@ router.post('/makeorder', fetchuser, async (req, res) => {
 
 
 
-// Route 4: Get all the orders using: GET /api/v1/product/getallorders       --User Api --login required
+// Route 7: Get all the orders using: GET /api/v1/product/getallorders       --User Api --login required
 router.get('/getallorders', fetchuser, async (req, res) => {
     try {
         const orderList = await Orders.find({ user: req.user.id });
@@ -198,7 +200,7 @@ router.delete('/cancelorder/:id', fetchuser, async (req, res) => {
 });
 
 
-// Route 5: Add a category using: POST api/v1/product/addcategory           --Admin Api --login required
+// Route 9: Add a category using: POST api/v1/product/addcategory           --Admin Api --login required
 router.post('/addcategory',fetchuser, async (req, res) => {
     try {
         // Destructuring all required and optional fields
@@ -216,7 +218,7 @@ router.post('/addcategory',fetchuser, async (req, res) => {
     }
 });
 
-// Route 6: Get all the orders using: GET /api/v1/product/getallcategory       --User Api
+// Route 10: Get all the orders using: GET /api/v1/product/getallcategory       --User Api
 router.get('/getallcategory', async (req, res) => {
     try {
         const categoryList = await Category.find()
@@ -229,7 +231,7 @@ router.get('/getallcategory', async (req, res) => {
 })
 
 
-// Route 8: Remove an item from the cart: DELETE  /api/v1/product/deleteproduct/:id       --Admin Api --login required
+// Route 11: Remove an item from the cart: DELETE  /api/v1/product/deleteproduct/:id       --Admin Api --login required
 router.delete('/deletecategory/:id', fetchuser, async (req, res) => {
     try {
         // Find the cart item to be removed
@@ -248,10 +250,10 @@ router.delete('/deletecategory/:id', fetchuser, async (req, res) => {
 });
 
 
-// Route 7: Add an item to the cart: POST /api/cart/addtocart
+// Route 12: Add an item to the cart: POST /api/cart/addtocart
 router.post('/addtocart', fetchuser, async (req, res) => {
     try {
-        const { productId, quantity } = req.body;
+        const { productId, quantity,size } = req.body;
 
         // Check if the product is already in the cart
         let cartItem = await Cart.findOne({ user: req.user.id, product: productId });
@@ -264,7 +266,8 @@ router.post('/addtocart', fetchuser, async (req, res) => {
             cartItem = new Cart({
                 user: req.user.id,
                 product: productId,
-                quantity: quantity
+                quantity: quantity,
+                size:size
             });
         }
 
@@ -277,7 +280,7 @@ router.post('/addtocart', fetchuser, async (req, res) => {
     }
 });
 
-// Route 8: Remove an item from the cart: DELETE /api/cart/remove/:id
+// Route 13: Remove an item from the cart: DELETE /api/cart/remove/:id
 // Route: Remove an item from the cart
 router.delete('/removefromcart/:id', fetchuser, async (req, res) => {
     try {
@@ -301,28 +304,8 @@ router.delete('/removefromcart/:id', fetchuser, async (req, res) => {
     }
 });
 
-// Route: Update the quantity of an item in the cart
-router.put('/updatecartitem/:id', fetchuser, async (req, res) => {
-    try {
-        let cartItem = await Cart.findById(req.params.id);
-        if (!cartItem) {
-            return res.status(404).send('Item not found');
-        }
-
-        if (cartItem.user.toString() !== req.user.id) {
-            return res.status(401).send('Not allowed');
-        }
-
-        cartItem.quantity = req.body.quantity;
-        await cartItem.save();
-        res.json({ success: "Quantity updated successfully", cartItem: cartItem });
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
-    }
-});
-
-// Route 9: Fetch all items in the cart: GET /api/cart/getcartproducts
+ 
+// Route 15: Fetch all items in the cart: GET /api/cart/getcartproducts
 router.get('/getcartproducts', fetchuser, async (req, res) => {
     try {
         // Find all cart items for the logged-in user

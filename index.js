@@ -1,7 +1,7 @@
 const connectToMongo = require('./db');
 const express = require('express');
 const cors = require('cors')
-
+const path = require('path');
 
 
 // --------------------------DATABASE CONNECTION------------------------
@@ -16,6 +16,7 @@ app.use(cors())
 // -------------NECESSARY TO USE req.body (Middleware)------
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
+app.use('/example', express.static(path.join(__dirname, 'example')));
 // --------------------------------------------
 
 //---------------AVAILABLE ROUTES--------------
@@ -25,11 +26,11 @@ app.use('/api/v1/product', require('./routes/products.js'));
 
 // --------------IMAGE UPLOAD----------------------
 const multer = require('multer');
-const path = require('path');
+// const path = require('path');
 const fs = require('fs');
 
 // Define the path to the 'images' directory inside 'public/example/' of the frontend project
-const uploadDirectory = path.join(__dirname, '../Ecommerce-web-MERN-Project/public/example/images');
+const uploadDirectory = path.join(__dirname, '/example/images');
 
 // Ensure that the 'images' directory exists
 if (!fs.existsSync(uploadDirectory)) {
