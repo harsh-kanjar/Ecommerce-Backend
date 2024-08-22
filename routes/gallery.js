@@ -1,15 +1,12 @@
-const path = require('path')
-const express = require('express')
-const router = express.Router();
-const multer  = require('multer')
+// routes/gallery.js
+const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
-const upload = multer({ dest: 'uploads/' })
+const router = express.Router();
 
 // Define the path to the 'images' directory inside 'public/example/' of the frontend project
-const uploadDirectory = path.join(__dirname, '../Ecommerce-web-MERN-Project/public/example/images');
+const uploadDirectory = path.join(__dirname, '../example/images');
 
 // Ensure that the 'images' directory exists
 if (!fs.existsSync(uploadDirectory)) {
@@ -27,9 +24,10 @@ const storage = multer.diskStorage({
     }
 });
 
+const upload = multer({ storage: storage });
 
 // Handle POST request to upload files
-app.post('/upload', upload.fields([
+router.post('/upload', upload.fields([
     { name: 'featuredImage', maxCount: 1 },
     { name: 'subImage1', maxCount: 1 },
     { name: 'subImage2', maxCount: 1 },
@@ -55,4 +53,6 @@ app.post('/upload', upload.fields([
 });
 
 // Serve the uploaded files
-app.use('/example/images', express.static(uploadDirectory));
+router.use('/example/images', express.static(uploadDirectory));
+
+module.exports = router;
