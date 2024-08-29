@@ -1,8 +1,8 @@
-// routes/gallery.js
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
 const router = express.Router();
 
 // Define the path to the 'images' directory inside 'public/example/' of the frontend project

@@ -1,5 +1,6 @@
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const jwt_s = "imharshkanjar@127.0.0.1/#"
+const jwt_s = process.env.SECRET_KEY;
 
 fetchuser = (req, res, next) => {
     try {

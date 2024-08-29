@@ -1,6 +1,6 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
-const mongoURI = " mongodb+srv://harshkanjar_admin:harsh_admin_007@cluster0.rzh65.mongodb.net/ecommerce?retryWrites=true&w=1 ";
-// const mongoURI = 'mongodb://localhost:27017/ecommerce'
+const mongoURI = process.env.MONGO_URI;
 
 const connectToMongo = async () => {
     try {
@@ -12,9 +12,6 @@ const connectToMongo = async () => {
     } catch (error) {
         console.error("Error connecting to MongoDB:", error);
     }
-}
+};
 
 module.exports = connectToMongo;
-
-
-///mongoos.connect(mongoURI,() => {})   <- this method (callback) is no longer valid 
