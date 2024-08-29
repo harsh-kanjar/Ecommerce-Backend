@@ -11,14 +11,13 @@ router.get('/getallproducts', async (req, res) => {
     try {
         const productList = await Products.find()
         res.send(productList)
-
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Internal server error');
     }
 })
 
-// Route 2:
+// Route 2: Get all the products using: GET /api/v1/product/getallproduct/:id       --User Api -- no login required
 router.get('/getproduct/:id', async (req, res) => {
     try {
         const product = await Products.findById(req.params.id);
@@ -32,23 +31,18 @@ router.get('/getproduct/:id', async (req, res) => {
     }
 });
 
-
-
 // Route 3: Add a new product using: POST api/v1/product/addproduct              --Admin Api --login required 
 router.post('/addproduct', fetchuser, async (req, res) => {
     try {
-        console.log("Received request body:", req.body);
-
+        console.log("Received request body:", req.body);  //use to debug
         const { productName, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords } = req.body;
-
         const product = new Products({
             productName, description, richDescription, featuredImage, subImage1, subImage2, subImage3, brand, price, category, countOfStock, rating, isFeatured, keywords, user: req.user.id
         });
-
         const savedProduct = await product.save();
         res.json(savedProduct);
-    } catch (error) {
-        console.error("Error in /addproduct route:", error.message);
+    } catch (error) { 
+        console.error("Error in /addproduct route:", error.message);  //use to debug
         res.status(500).send('Internal server error');
     }
 });
@@ -61,7 +55,6 @@ router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
         if (!productItem) {
             return res.status(404).send('Item not found');
         }
-
         // Delete the product item
         await Products.findByIdAndDelete(req.params.id);
         res.json({ success: "Item has been removed from the Product List", productItem: productItem });
@@ -71,36 +64,19 @@ router.delete('/deleteproduct/:id', fetchuser, async (req, res) => {
     }
 });
 
-
-// Route 5
+// Route 5: Update an item from the cart: PUT  /api/v1/product/updatecartitem/:cartItemId      --Admin Api --login required
 router.put('/updatecartitem/:cartItemId', fetchuser, async (req, res) => {
     const { cartItemId } = req.params;
-    const { size } = req.body;
-
     try {
         // Find the cart item by ID and update the size
-        const cartItem = await Cart.findByIdAndUpdate(
-            cartItemId,
-            { size },
-            { new: true }
-        );
-
-        if (!cartItem) {
-            return res.status(404).json({ error: "Cart item not found" });
-        }
-
+        const cartItem = await Cart.findByIdAndUpdate( cartItemId, { new: true } );
+        if (!cartItem) { return res.status(404).json({ error: "Cart item not found" }); }
         res.json(cartItem);
     } catch (error) {
         console.error("Error updating cart item size:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
-
-
-
-
-
-
 
 // Route 6: Make a new order using: POST api/v1/product/makeorder           --User Api --login required
  
@@ -109,60 +85,30 @@ router.put('/updatecartitem/:cartItemId', fetchuser, async (req, res) => {
 router.post('/makeorder', fetchuser, async (req, res) => {
     try {
         const { fullName, phone, address, line2, city, state, zip, country, paymentMode, couponCode } = req.body;
-
         // Fetch cart items for the logged-in user
         const cartItems = await Cart.find({ user: req.user.id }).populate('product');
-
-        if (cartItems.length === 0) {
-            return res.status(400).json({ message: "Your cart is empty" });
-        }
-
+        if (cartItems.length === 0) { return res.status(400).json({ message: "Your cart is empty" }); }
         // Calculate total price
         let totalPrice = 0;
         const orderItems = cartItems.map(item => {
             const itemTotalPrice = item.product.price * item.quantity;
             totalPrice += itemTotalPrice;
-            return {
-                product: item.product._id,
-                quantity: item.quantity,
-                size:item.size,
-                price: item.product.price
-            };
-        });
-
+            return { product: item.product._id, quantity: item.quantity, size:item.size, price: item.product.price }; }
+        );
         // Create a new order instance
         const order = new Orders({
-            user: req.user.id,
-            orderItems,
-            fullName,
-            address,
-            line2,
-            city,
-            state,
-            zip,
-            country,
-            phone,
-            totalPrice,
-            couponCode,
-            paymentMode  // Make sure to save paymentMode
-        });
-
+            user: req.user.id, orderItems, fullName, address, line2, city, state, zip, country, phone, totalPrice, couponCode, paymentMode }
+        );
         // Save the order to the database
         const savedOrder = await order.save();
-
         // Clear the cart after placing the order
         await Cart.deleteMany({ user: req.user.id });
-
         res.json(savedOrder);
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Internal Server Error');
     }
 });
-
- 
-
-
 
 // Route 7: Get all the orders using: GET /api/v1/product/getallorders       --User Api --login required
 router.get('/getallorders', fetchuser, async (req, res) => {
@@ -175,21 +121,14 @@ router.get('/getallorders', fetchuser, async (req, res) => {
     }
 });
 
-
 // Route 8: Remove an item from the cart: DELETE  /api/v1/product/cancelorder/:id       --Admin Api --login required
 router.delete('/cancelorder/:id', fetchuser, async (req, res) => {
     try {
         // Find the cart item to be removed
         let orderItem = await Orders.findById(req.params.id);
-        if (!orderItem) {
-            return res.status(404).send('Item not found');
-        }
-
+        if (!orderItem) { return res.status(404).send('Item not found'); }
         // Allow removal only if the user owns it
-        if (orderItem.user.toString() !== req.user.id) {
-            return res.status(401).send('Not allowed');
-        }
-
+        if (orderItem.user.toString() !== req.user.id) { return res.status(401).send('Not allowed'); }
         // Delete the cart item
         await Orders.findByIdAndDelete(req.params.id);
         res.json({ success: "Item has been removed from the Order List", orderItem: orderItem });
@@ -199,16 +138,13 @@ router.delete('/cancelorder/:id', fetchuser, async (req, res) => {
     }
 });
 
-
 // Route 9: Add a category using: POST api/v1/product/addcategory           --Admin Api --login required
 router.post('/addcategory',fetchuser, async (req, res) => {
     try {
         // Destructuring all required and optional fields
         const { name , color , icon , image } = req.body;
-
         // Creating a new order instance
         const category = new Category({name , color , icon , image,user: req.user.id });
-
         // Save the order to the database
         const savedOrder = await category.save();
         res.json(savedOrder);
@@ -218,28 +154,24 @@ router.post('/addcategory',fetchuser, async (req, res) => {
     }
 });
 
-// Route 10: Get all the orders using: GET /api/v1/product/getallcategory       --User Api
+// Route 10: Get all the orders using: GET /api/v1/product/getallcategory        --User api --no login required 
+router
 router.get('/getallcategory', async (req, res) => {
     try {
         const categoryList = await Category.find()
         res.send(categoryList)
-
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Internal server error');
     }
 })
 
-
-// Route 11: Remove an item from the cart: DELETE  /api/v1/product/deleteproduct/:id       --Admin Api --login required
+// Route 11: Remove an item from the cart: DELETE  /api/v1/product/deleteproduct/:id       --User api --login required 
 router.delete('/deletecategory/:id', fetchuser, async (req, res) => {
     try {
         // Find the cart item to be removed
         let categoryItem = await Category.findById(req.params.id);
-        if (!categoryItem) {
-            return res.status(404).send('Item not found');
-        }
-
+        if (!categoryItem) { return res.status(404).send('Item not found'); }
         // Delete the product item
         await Category.findByIdAndDelete(req.params.id);
         res.json({ success: "Item has been removed from the Category List", categoryItem: categoryItem });
@@ -249,28 +181,21 @@ router.delete('/deletecategory/:id', fetchuser, async (req, res) => {
     }
 });
 
-
-// Route 12: Add an item to the cart: POST /api/cart/addtocart
+// Route 12: Add an item to the cart: POST /api/cart/addtocart       --User api --login required 
 router.post('/addtocart', fetchuser, async (req, res) => {
     try {
-        const { productId, quantity,size } = req.body;
-
+        const { productId, quantity } = req.body;
         // Check if the product is already in the cart
         let cartItem = await Cart.findOne({ user: req.user.id, product: productId });
-
-        if (cartItem) {
-            // If the product is already in the cart, update the quantity
-            cartItem.quantity += quantity;
-        } else {
+        if (cartItem) { cartItem.quantity += quantity; } // If the product is already in the cart, update the quantity
+        else {
             // If the product is not in the cart, create a new cart item
             cartItem = new Cart({
                 user: req.user.id,
                 product: productId,
                 quantity: quantity,
-                size:size
             });
         }
-
         // Save the cart item to the database
         await cartItem.save();
         res.json({ success: "Item has been added to the cart", cartItem: cartItem });
@@ -280,21 +205,14 @@ router.post('/addtocart', fetchuser, async (req, res) => {
     }
 });
 
-// Route 13: Remove an item from the cart: DELETE /api/cart/remove/:id
-// Route: Remove an item from the cart
+// Route 13: Remove an item from the cart: DELETE /api/cart/remove/:id          --User api --login required 
 router.delete('/removefromcart/:id', fetchuser, async (req, res) => {
     try {
         // Find the cart item to be removed
         let cartItem = await Cart.findById(req.params.id);
-        if (!cartItem) {
-            return res.status(404).send('Item not found');
-        }
-
+        if (!cartItem) { return res.status(404).send('Item not found'); }
         // Allow removal only if the user owns it
-        if (cartItem.user.toString() !== req.user.id) {
-            return res.status(401).send('Not allowed');
-        }
-
+        if (cartItem.user.toString() !== req.user.id) { return res.status(401).send('Not allowed'); }
         // Delete the cart item
         await Cart.findByIdAndDelete(req.params.id);
         res.json({ success: "Item has been removed from the cart", cartItem: cartItem });
@@ -304,17 +222,12 @@ router.delete('/removefromcart/:id', fetchuser, async (req, res) => {
     }
 });
 
- 
-// Route 15: Fetch all items in the cart: GET /api/cart/getcartproducts
+// Route 15: Fetch all items in the cart: GET /api/cart/getcartproducts         --User api --login required 
 router.get('/getcartproducts', fetchuser, async (req, res) => {
     try {
         // Find all cart items for the logged-in user
         const cartItems = await Cart.find({ user: req.user.id }).populate('product');
-
-        if (cartItems.length === 0) {
-            return res.status(404).json({ message: "Your cart is empty" });
-        }
-
+        if (cartItems.length === 0) { return res.status(404).json({ message: "Your cart is empty" }); }
         res.json({ success: "Cart items retrieved successfully", cartItems: cartItems });
     } catch (error) {
         console.error(error.message);
